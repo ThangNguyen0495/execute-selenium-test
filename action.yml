@@ -85,12 +85,14 @@ runs:
         if [ "${{ inputs.artifact }}" != "" ]; then
           cd CheckoutFolder
         fi
+
         if [ -z "${{ inputs.scripts }}" ]; then
           mvn test "-DsuiteFile=${{ inputs.test_config }}"
         else
-          # Ensure that the script is only run if it's not empty
+          # Run the custom script from inputs.scripts if it's not empty
           if [ -n "${{ inputs.scripts }}" ]; then
-            ${!{ inputs.scripts }}
+            # Directly execute the value of inputs.scripts
+            bash -c "${{ inputs.scripts }}"
           fi
         fi
       shell: bash
