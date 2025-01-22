@@ -6,44 +6,17 @@ inputs:
     required: false
     default: '22'
 
-  artifact:
-    description: 'The artifact to download. That is the test source code.'
-    required: false
-
-  test_config:
-    description: 'The test configuration file to use.'
-    required: false
-
   test_name:
     description: 'The name of the test suite.'
     required: true
 
-  branch_name:
-    description: 'The branch name to switch to.'
-    required: false
-
   scripts:
     description: 'The maven commands to execute the test.'
-    required: false
+    required: true
 runs:
   using: 'composite'
   steps:
-    - name: Download artifact
-      if: ${{ inputs.artifact != '' }}
-      uses: actions/download-artifact@v4
-      with:
-        name: ${{ inputs.artifact }}
-        path: CheckoutFolder
-
-    - name: Switch to another branch
-      if: ${{ inputs.branch_name != '' }}
-      run: |
-        cd CheckoutFolder
-        git checkout ${{ inputs.branch_name }}
-      shell: bash
-
     - name: Checkout code
-      if: ${{ inputs.artifact == '' }}
       uses: actions/checkout@v2
 
     - name: Set up Java
@@ -74,27 +47,12 @@ runs:
 
     - name: Install dependencies
       run: |
-        if [ "${{ inputs.artifact }}" != "" ]; then
-          cd CheckoutFolder
-        fi
         mvn install -DskipTests > /dev/null 2>&1
       shell: bash
 
     - name: Run tests
       run: |
-        if [ "${{ inputs.artifact }}" != "" ]; then
-          cd CheckoutFolder
-        fi
-
-        if [ -z "${{ inputs.scripts }}" ]; then
-          mvn test "-DsuiteFile=${{ inputs.test_config }}"
-        else
-          # Run the custom script from inputs.scripts if it's not empty
-          if [ -n "${{ inputs.scripts }}" ]; then
-            # Directly execute the value of inputs.scripts
-            bash -c "${{ inputs.scripts }}"
-          fi
-        fi
+        eval "${{ inputs.scripts }}"
       shell: bash
 
     - name: Upload Test Report
@@ -105,10 +63,3 @@ runs:
         path: |
           **/target/BufferLog.log
           **/target/ExtentReport.html
-          **/recording_video
-
-    - name: Remove cloned repo
-      if: ${{ inputs.artifact != '' }}
-      run: |
-        rm -r CheckoutFolder
-      shell: bash
