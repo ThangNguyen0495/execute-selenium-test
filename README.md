@@ -1,47 +1,47 @@
 # Selenium Workflow Action
 
-This custom GitHub Action is designed to run Selenium tests using Maven. It allows for flexible configuration, including specifying the Java version, downloading artifacts, switching branches, and using custom Maven commands.
-
-## Features
-
-- **Java Version Support**: Install and use a specified version of Java (default is `22`).
-- **Artifact Download**: Optionally download an artifact containing the test source code.
-- **Branch Switching**: Optionally switch to a different branch before running tests.
-- **Custom Maven Commands**: Run custom Maven commands to execute tests.
-- **Automated Test Execution**: Easily configure and run Selenium tests with various parameters.
+A custom GitHub Action designed to run Selenium tests with Maven. This action provides flexibility in configuring Java versions, executing custom Maven commands, and generating test reports. It's ideal for integrating Selenium tests into your CI/CD pipeline on GitHub Actions.
 
 ## Inputs
 
-| Input Name    | Description                                                           | Required | Default |
-|---------------|-----------------------------------------------------------------------|----------|---------|
-| `java_version`| The version of Java to install.                                        | false    | `22`    |
-| `artifact`    | The artifact to download, containing the test source code.             | false    |         |
-| `test_config` | The test configuration file to use.                                    | false    |         |
-| `test_name`   | The name of the test suite.                                            | true     |         |
-| `branch_name` | The branch name to switch to.                                          | false    |         |
-| `scripts`     | The Maven commands to execute the test.                                | false    |         |
+### `java_version` (Optional)
+- **Description**: The version of Java to install.
+- **Default**: `22`
+- **Required**: No
 
-## Usage
+### `test_name` (Required)
+- **Description**: The name of the test suite. This will be used when uploading test reports.
+- **Required**: Yes
 
-To use this action in your GitHub workflow, include the following steps:
+### `scripts` (Required)
+- **Description**: The Maven commands to execute the tests. This allows you to run customized test commands.
+- **Required**: Yes
+
+---
+
+## Example Workflow
+
+Here's an example of how to use this action in your workflow:
 
 ```yaml
 name: Run Selenium Tests
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   selenium-tests:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Run Selenium Workflow
-      uses: ThangNguyen0495/execute-selenium-test@v1.0.0
-      with:
-        java_version: '22'             # Optional: Specify Java version
-        artifact: 'your-artifact-name' # Optional: Name of the artifact to download
-        test_config: 'testng.xml'      # Optional: Path to the test configuration file
-        test_name: 'MyTestSuite'       # Required: Name of the test suite
-        branch_name: 'main'            # Optional: Branch to switch to
-        scripts: 'mvn clean test'      # Optional: Custom Maven commands to run the tests
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Run Selenium Tests with Maven
+        uses: ThangNguyen0495/execute-selenium-test@v1.0.0
+        with:
+          java_version: '22'
+          test_name: 'MyTestSuite'
+          scripts: 'mvn test -DsuiteFile=testng.xml'
